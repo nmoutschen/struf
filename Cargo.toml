@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "struf",
+    "struf_derive",
+    "struf_test"
+]

@@ -1,0 +1,13 @@
+[package]
+name = "struf"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+struf_derive = { version = "0.0.1", path = "../struf_derive", optional = true }
+
+[features]
+default = ["derive"]
+derive = ["struf_derive"]
