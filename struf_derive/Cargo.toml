@@ -1,5 +1,6 @@
 [package]
 name = "struf_derive"
+description = "Derive for Struct Filters"
 version = "0.0.1"
 edition = "2021"
 authors = ["nicolas.moutschen@gmail.com"]
