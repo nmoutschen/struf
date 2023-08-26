@@ -2,7 +2,6 @@
 name = "struf"
 version = "0.0.1"
 edition = "2021"
-edition = "2021"
 authors = ["nicolas.moutschen@gmail.com"]
 license = "MIT"
 repository = "https://github.com/nmoutschen/struf"
