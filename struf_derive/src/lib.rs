@@ -74,14 +74,19 @@ impl ToTokens for FilterReceiver {
             });
             filter_methods.push(quote! {
                 pub fn #with_singular<V>(mut self, #singular: V) -> Self
-                where V: Into<#ty> {
+                where
+                    V: Into<#ty>,
+                {
                     self.#plural.insert(#singular.into());
                     self
                 }
 
-                pub fn #with_plural<I>(mut self, #plural: I) -> Self
-                where I: ::std::iter::IntoIterator<Item = #ty> {
-                    ::std::iter::Extend::extend(&mut self.#plural, #plural);
+                pub fn #with_plural<I, V>(mut self, #plural: I) -> Self
+                where
+                    I: ::std::iter::IntoIterator<Item = V>,
+                    V: Into<#ty>,
+                {
+                    ::std::iter::Extend::extend(&mut self.#plural, #plural.into_iter().map(Into::into));
                     self
                 }
             });
