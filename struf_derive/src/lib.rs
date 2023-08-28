@@ -34,6 +34,8 @@ impl ToTokens for FilterReceiver {
             ref generics,
             ref data,
         } = self;
+
+        // Parse all filterable fields
         let fields = data
             .as_ref()
             .take_struct()
@@ -56,6 +58,7 @@ impl ToTokens for FilterReceiver {
 
         let filter_name = format_ident!("{ident}Filter");
         let mut filter_fields = Vec::new();
+        let mut filter_defaults = Vec::new();
         let mut filter_methods = Vec::new();
         let mut filter_matches = Vec::new();
 
@@ -69,8 +72,12 @@ impl ToTokens for FilterReceiver {
             let with_singular = format_ident!("with_{singular}");
             let with_plural = format_ident!("with_{plural}");
             let ty = &field.ty;
+
             filter_fields.push(quote! {
                 pub #plural: ::std::collections::HashSet<#ty>
+            });
+            filter_defaults.push(quote! {
+                #plural: ::std::collections::HashSet::new()
             });
             filter_methods.push(quote! {
                 pub fn #with_singular<V>(mut self, #singular: V) -> Self
@@ -97,23 +104,76 @@ impl ToTokens for FilterReceiver {
             });
         }
 
+        // Create PhantomDatas for each generic type
+        //
+        // Ideally, we should be able to derive which generics are actually used
+        let mut generic_fields = Vec::new();
+        let mut generic_defaults = Vec::new();
+        let mut generics_where = Vec::new();
+        for (i, param) in generics.params.iter().enumerate() {
+            match param {
+                syn::GenericParam::Lifetime(gen_lifetime) => {
+                    let gen_field = format_ident!("_phantom_data{i}");
+                    generic_fields.push(quote! {
+                        #gen_field: ::std::marker::PhantomData<&#gen_lifetime ()>
+                    });
+                    generic_defaults.push(quote! {
+                        #gen_field: ::std::marker::PhantomData
+                    });
+                }
+                syn::GenericParam::Type(gen_ty) => {
+                    let gen_field = format_ident!("_phantom_data{i}");
+                    generic_fields.push(quote! {
+                        #gen_field: ::std::marker::PhantomData<#gen_ty>
+                    });
+                    generic_defaults.push(quote! {
+                        #gen_field: ::std::marker::PhantomData
+                    });
+                    generics_where.push(quote! {
+                        #gen_ty: ::std::cmp::Eq + ::std::hash::Hash
+                    });
+                }
+                syn::GenericParam::Const(_) => (),
+            }
+        }
+
+        // Generate the Filter struct and implementations
         let filter = quote! {
-            #[derive(Debug, Default)]
-            #vis struct #filter_name #generics {
-                #(#filter_fields),*
+            #[derive(Debug)]
+            #[non_exhaustive]
+            #vis struct #filter_name #generics
+            where #(#generics_where,)*
+            {
+                #(#filter_fields,)*
+                #(#generic_fields,)*
             }
 
-            impl #generics #filter_name #generics {
+            impl #generics Default for #filter_name #generics
+            where #(#generics_where),*
+            {
+                fn default() -> Self {
+                    Self {
+                        #(#filter_defaults,)*
+                        #(#generic_defaults,)*
+                    }
+                }
+            }
+
+            impl #generics #filter_name #generics
+            where #(#generics_where,)*
+            {
                 #(#filter_methods)*
 
-                fn matches(&self, item: &#ident) -> bool {
+                fn matches(&self, item: &#ident #generics) -> bool {
                     #(#filter_matches)*
 
                     true
                 }
             }
 
-            impl #generics ::struf::Filter for #ident #generics {
+            impl #generics ::struf::Filter for #ident #generics
+            where #(#generics_where),*
+            {
                 type Filter = #filter_name #generics;
 
                 fn filter() -> Self::Filter {
@@ -133,29 +193,4 @@ pub fn filter(input: TokenStream) -> TokenStream {
     let receiver = FilterReceiver::from_derive_input(&input).unwrap();
 
     quote!(#receiver).into()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse() {
-        let input = syn::parse_str(
-            r#"
-            #[derive(Filter)]
-            pub struct MyStruct<T: Hash> {
-                a: T,
-                #[filter]
-                b: T,
-            }"#,
-        )
-        .unwrap();
-
-        let receiver = FilterReceiver::from_derive_input(&input).unwrap();
-
-        let tokens = quote!(#receiver);
-
-        println!("{tokens}");
-    }
 }

@@ -1,6 +1,3 @@
 [workspace]
-members = [
-    "struf",
-    "struf_derive",
-    "struf_test"
-]
+members = ["struf", "struf_derive", "struf_test"]
+resolver = "2"
