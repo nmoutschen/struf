@@ -81,14 +81,14 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "struf"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "struf_derive",
 ]
 
 [[package]]
 name = "struf_derive"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "darling",
  "paste",
@@ -99,7 +99,7 @@ dependencies = [
 
 [[package]]
 name = "struf_test"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "struf",
 ]

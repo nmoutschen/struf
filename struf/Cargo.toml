@@ -1,7 +1,7 @@
 [package]
 name = "struf"
 description = "Struct Filters"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 authors = ["nicolas.moutschen@gmail.com"]
 license = "MIT"
@@ -11,8 +11,4 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-struf_derive = { version = "0.0.1", path = "../struf_derive", optional = true }
-
-[features]
-default = ["derive"]
-derive = ["struf_derive"]
+struf_derive = { version = "0.0.2", path = "../struf_derive" }

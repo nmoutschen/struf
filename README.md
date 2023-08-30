@@ -24,4 +24,9 @@ let filter = MyStruct::filter().with_names(vec!["name_a", "name_b"]);
 
 // Access filter values
 dbg!(&filter.names);
+
+// Use it to match against existing values
+filter.matches(&MyStruct {
+    name: "Some name".to_string(),
+});
 ```
